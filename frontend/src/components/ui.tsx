@@ -4,18 +4,21 @@ import { ReactNode } from "react";
 export function IconButton({
   label,
   icon: Icon,
-  onClick
+  onClick,
+  disabled
 }: {
   label: string;
   icon: LucideIcon;
   onClick?: () => void;
+  disabled?: boolean;
 }) {
   return (
     <button
       aria-label={label}
       title={label}
-      onClick={onClick}
-      className="grid h-10 w-10 place-items-center rounded-md border border-black/10 bg-white/80 text-ink shadow-sm transition hover:bg-sage-50 focus:outline-none focus:ring-2 focus:ring-sage-500 dark:border-white/10 dark:bg-white/10 dark:text-white"
+      onClick={disabled ? undefined : onClick}
+      disabled={disabled}
+      className="grid h-10 w-10 place-items-center rounded-md border border-black/10 bg-white/80 text-ink shadow-sm transition hover:bg-sage-50 focus:outline-none focus:ring-2 focus:ring-sage-500 disabled:pointer-events-none disabled:opacity-45 dark:border-white/10 dark:bg-white/10 dark:text-white"
       type="button"
     >
       <Icon size={18} aria-hidden />
@@ -26,11 +29,15 @@ export function IconButton({
 export function Button({
   children,
   type = "button",
-  variant = "primary"
+  variant = "primary",
+  disabled,
+  onClick
 }: {
   children: ReactNode;
   type?: "button" | "submit";
   variant?: "primary" | "secondary";
+  disabled?: boolean;
+  onClick?: () => void;
 }) {
   const styles =
     variant === "primary"
@@ -39,7 +46,9 @@ export function Button({
   return (
     <button
       type={type}
-      className={`inline-flex min-h-10 items-center justify-center gap-2 rounded-md px-4 text-sm font-semibold transition focus:outline-none focus:ring-2 focus:ring-sage-500 ${styles}`}
+      disabled={disabled}
+      onClick={onClick}
+      className={`inline-flex min-h-10 items-center justify-center gap-2 rounded-md px-4 text-sm font-semibold transition focus:outline-none focus:ring-2 focus:ring-sage-500 disabled:pointer-events-none disabled:opacity-50 ${styles}`}
     >
       {children}
     </button>

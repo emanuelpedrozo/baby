@@ -19,12 +19,15 @@ cp .env.example .env
 docker compose up --build
 ```
 
+O Compose carrega variaveis de [`.env`](.env) (nao use `.env.example` diretamente em producao).
+
 Servicos:
 
 - Frontend: http://localhost:3000
 - Backend: http://localhost:3333/api
 - Swagger: http://localhost:3333/api/docs
 - MinIO console: http://localhost:9001
+- Lista publica de presentes (exemplo seed): http://localhost:3000/publico/listas/demo-lista
 
 Usuario seed:
 
@@ -38,6 +41,7 @@ demo@baby.local
 Este modo sobe imagens buildadas, sem volumes de desenvolvimento:
 
 ```bash
+cp .env.example .env
 docker compose -f docker-compose.prod.yml up -d --build
 ```
 
