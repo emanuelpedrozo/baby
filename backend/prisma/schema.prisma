@@ -128,6 +128,7 @@ model Projeto {
   status            StatusProjeto @default(ATIVO)
   shareSlug         String        @unique
   climaRegiao       String?
+  fotoQuarto        String?
   criadoEm          DateTime      @default(now())
   atualizadoEm      DateTime      @updatedAt
   deletadoEm        DateTime?

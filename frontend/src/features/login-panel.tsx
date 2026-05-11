@@ -5,14 +5,12 @@ import { apiFetch, type ApiSession } from "@/lib/api";
 import { useAppStore } from "@/lib/store";
 import { Button } from "@/components/ui";
 
-const demoEmailPlaceholder = process.env.NEXT_PUBLIC_DEMO_EMAIL ?? "voce@exemplo.com";
-
 export function LoginPanel() {
   const { session, setSession } = useAppStore();
   const [mode, setMode] = useState<"login" | "register">("login");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const userLabel = useMemo(() => session?.usuario.nome ?? "Modo demonstracao", [session]);
+  const userLabel = useMemo(() => session?.usuario.nome ?? "Acesse sua conta", [session]);
 
   async function login(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -97,7 +95,7 @@ export function LoginPanel() {
                 type="email"
                 required
                 autoComplete="email"
-                placeholder={demoEmailPlaceholder}
+                placeholder="voce@exemplo.com"
                 className="min-h-10 rounded-md border border-black/10 px-3 text-sm dark:border-white/10 dark:bg-white/10"
               />
               <input
@@ -126,7 +124,7 @@ export function LoginPanel() {
                 type="email"
                 required
                 autoComplete="email"
-                placeholder={demoEmailPlaceholder}
+                placeholder="voce@exemplo.com"
                 className="min-h-10 rounded-md border border-black/10 px-3 text-sm dark:border-white/10 dark:bg-white/10"
               />
               <input

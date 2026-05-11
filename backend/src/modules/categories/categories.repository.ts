@@ -11,7 +11,7 @@ export class CategoriesRepository {
       where: {
         tenantId,
         deletadoEm: null,
-        OR: [{ projetoId: projetoId ?? null }, { projetoId: null, padrao: true }]
+        ...(projetoId ? { projetoId } : { projetoId: null, padrao: true })
       },
       orderBy: [{ ordem: "asc" }, { nome: "asc" }]
     });

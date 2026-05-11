@@ -4,18 +4,16 @@ import { ExternalLink } from "lucide-react";
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui";
-import { demoProject } from "./demo-data";
 import { useProjectId } from "./use-project-id";
 
 export function PresentesSection() {
-  const { session, projectId, isDemo, projects } = useProjectId();
+  const { session, projectId, projects } = useProjectId();
   const [copied, setCopied] = useState("");
 
   const shareSlug = useMemo(() => {
-    if (isDemo) return demoProject.shareSlug;
     const p = projects.data?.find((x) => x.id === projectId);
     return p?.shareSlug;
-  }, [isDemo, projectId, projects.data]);
+  }, [projectId, projects.data]);
 
   const publicPath = shareSlug ? `/publico/listas/${shareSlug}` : "";
 
@@ -66,12 +64,6 @@ export function PresentesSection() {
             : "Nao foi possivel obter o identificador da lista."}
         </p>
       )}
-
-      {!session?.accessToken ? (
-        <p className="text-xs text-black/60 dark:text-white/65">
-          No modo demo, o link usa a lista de exemplo <strong>demo-lista</strong> (requer backend com seed).
-        </p>
-      ) : null}
     </div>
   );
 }

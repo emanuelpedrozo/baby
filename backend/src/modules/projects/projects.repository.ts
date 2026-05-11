@@ -18,7 +18,8 @@ export class ProjectsRepository {
         temaQuarto: dto.temaQuarto,
         orcamentoTotal: dto.orcamentoTotal,
         moeda: dto.moeda,
-        climaRegiao: dto.climaRegiao
+        climaRegiao: dto.climaRegiao,
+        fotoQuarto: dto.fotoQuarto
       }
     });
   }

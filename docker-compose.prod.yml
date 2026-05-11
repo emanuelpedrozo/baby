@@ -41,9 +41,12 @@ services:
       JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:-change-access-secret}
       JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-change-refresh-secret}
       PUBLIC_APP_URL: ${PUBLIC_APP_URL:-http://localhost:3000}
+      PUBLIC_API_URL: ${PUBLIC_API_URL:-http://localhost:3333}
     depends_on:
       postgres:
         condition: service_healthy
+    volumes:
+      - backend_uploads:/app/uploads
     ports:
       - "3333:3333"
 
@@ -65,3 +68,4 @@ services:
 volumes:
   postgres_data:
   minio_data:
+  backend_uploads:

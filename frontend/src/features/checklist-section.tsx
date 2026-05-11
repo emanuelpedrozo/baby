@@ -4,7 +4,6 @@ import { CheckCircle2 } from "lucide-react";
 import { useMemo } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiFetch } from "@/lib/api";
-import { demoChecklist } from "./demo-data";
 import { useProjectId } from "./use-project-id";
 import type { ChecklistItem } from "./types";
 
@@ -15,18 +14,17 @@ export function ChecklistSection() {
   const checklist = useQuery({
     queryKey: ["checklist", projectId, session?.accessToken],
     queryFn: () => apiFetch<{ data: ChecklistItem[]; progresso: number }>(`/projetos/${projectId}/checklist`),
-    enabled: Boolean(session?.accessToken && projectId && projectId !== "demo")
+    enabled: Boolean(session?.accessToken && projectId)
   });
 
-  const activeChecklist = checklist.data?.data ?? demoChecklist;
+  const activeChecklist = checklist.data?.data ?? [];
   const progresso = useMemo(() => {
     if (checklist.data) return checklist.data.progresso;
-    const done = demoChecklist.filter((i) => i.concluido).length;
-    return Math.round((done / demoChecklist.length) * 100);
+    return 0;
   }, [checklist.data]);
 
   async function toggleChecklist(item: ChecklistItem, concluido: boolean) {
-    if (!session?.accessToken || !projectId || projectId === "demo") return;
+    if (!session?.accessToken || !projectId) return;
 
     await apiFetch(`/projetos/${projectId}/checklist/${item.id}`, {
       method: "PATCH",
@@ -55,15 +53,17 @@ export function ChecklistSection() {
               checked={item.concluido}
               onChange={(event) => void toggleChecklist(item, event.target.checked)}
               className="h-4 w-4 accent-sage-700"
-              disabled={!session?.accessToken || projectId === "demo"}
+              disabled={!session?.accessToken}
             />
             <span className="text-sm">{item.nome}</span>
             <span className="ml-auto rounded bg-black/5 px-2 py-1 text-xs dark:bg-white/10">{item.tipo}</span>
           </label>
         ))}
       </div>
-      {!session?.accessToken ? (
-        <p className="mt-4 text-xs text-black/60 dark:text-white/65">Modo demonstracao: alteracoes nao sao salvas.</p>
+      {!activeChecklist.length ? (
+        <p className="mt-4 text-sm text-black/60 dark:text-white/65">
+          Nenhum item no checklist ainda.
+        </p>
       ) : null}
     </div>
   );

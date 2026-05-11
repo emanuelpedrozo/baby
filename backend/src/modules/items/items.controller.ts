@@ -19,19 +19,22 @@ export class ItemsController {
   @ApiQuery({ name: "perPage", required: false })
   @ApiQuery({ name: "q", required: false })
   @ApiQuery({ name: "status", enum: StatusItem, required: false })
+  @ApiQuery({ name: "categoriaId", required: false })
   list(
     @CurrentUser() user: AuthenticatedUser,
     @Param("projetoId") projetoId: string,
     @Query("page") page = "1",
     @Query("perPage") perPage = "20",
     @Query("q") q?: string,
-    @Query("status") status?: StatusItem
+    @Query("status") status?: StatusItem,
+    @Query("categoriaId") categoriaId?: string
   ) {
     return this.items.list(user, projetoId, {
       page: Number(page),
-      perPage: Math.min(Number(perPage), 100),
+      perPage: Math.min(Number(perPage), 500),
       q,
-      status
+      status,
+      categoriaId
     });
   }
 

@@ -6,12 +6,11 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiFetch } from "@/lib/api";
 import { money } from "@/lib/format";
 import { Button, Metric, ProgressBar } from "@/components/ui";
-import { demoDashboard } from "./demo-data";
 import { useProjectId } from "./use-project-id";
 import type { Category, Dashboard } from "./types";
 
 export function DashboardHome() {
-  const { session, projectId, isDemo } = useProjectId();
+  const { session, projectId } = useProjectId();
   const queryClient = useQueryClient();
   const [catNome, setCatNome] = useState("");
   const [catCor, setCatCor] = useState("#8aa38b");
@@ -22,17 +21,16 @@ export function DashboardHome() {
   const dashboard = useQuery({
     queryKey: ["dashboard", projectId, session?.accessToken],
     queryFn: () => apiFetch<Dashboard>(`/projetos/${projectId}/dashboard`),
-    enabled: Boolean(session?.accessToken && projectId && projectId !== "demo")
+    enabled: Boolean(session?.accessToken && projectId)
   });
 
   const categories = useQuery({
     queryKey: ["categories", projectId, session?.accessToken],
     queryFn: () => apiFetch<Category[]>(`/categorias?projetoId=${projectId}`),
-    enabled: Boolean(session?.accessToken && projectId && projectId !== "demo")
+    enabled: Boolean(session?.accessToken && projectId)
   });
 
-  const activeDashboard = dashboard.data ?? demoDashboard;
-  const canMutate = Boolean(session?.accessToken && projectId && projectId !== "demo");
+  const canMutate = Boolean(session?.accessToken && projectId);
 
   async function addCategory(event: FormEvent) {
     event.preventDefault();
@@ -62,6 +60,16 @@ export function DashboardHome() {
       setCatSaving(false);
     }
   }
+
+  if (dashboard.isLoading || !dashboard.data) {
+    return (
+      <section className="rounded-lg border border-black/10 bg-white p-5 text-sm text-black/60 shadow-sm dark:border-white/10 dark:bg-white/10 dark:text-white/65">
+        Carregando painel do enxoval...
+      </section>
+    );
+  }
+
+  const activeDashboard = dashboard.data;
 
   return (
     <>
@@ -135,11 +143,6 @@ export function DashboardHome() {
         </div>
       </section>
 
-      {isDemo ? (
-        <p className="text-sm text-black/60 dark:text-white/65">
-          Conecte-se para criar categorias e sincronizar com o servidor.
-        </p>
-      ) : null}
     </>
   );
 }

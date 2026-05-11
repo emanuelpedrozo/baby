@@ -7,18 +7,21 @@ import { CreateItemDto, UpdateItemDto } from "./dto";
 export class ItemsRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  list(projetoId: string, params: { page: number; perPage: number; q?: string; status?: StatusItem }) {
+  list(projetoId: string, params: { page: number; perPage: number; q?: string; status?: StatusItem; categoriaId?: string }) {
     const where: Prisma.ItemEnxovalWhereInput = {
       projetoId,
       deletadoEm: null,
-      status: params.status,
-      OR: params.q
-        ? [
-            { nome: { contains: params.q, mode: "insensitive" } },
-            { descricao: { contains: params.q, mode: "insensitive" } },
-            { categoria: { nome: { contains: params.q, mode: "insensitive" } } }
-          ]
-        : undefined
+      ...(params.categoriaId ? { categoriaId: params.categoriaId } : {}),
+      ...(params.status ? { status: params.status } : {}),
+      ...(params.q
+        ? {
+            OR: [
+              { nome: { contains: params.q, mode: "insensitive" } },
+              { descricao: { contains: params.q, mode: "insensitive" } },
+              { categoria: { nome: { contains: params.q, mode: "insensitive" } } }
+            ]
+          }
+        : {})
     };
     return this.prisma.$transaction([
       this.prisma.itemEnxoval.count({ where }),

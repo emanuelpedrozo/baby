@@ -1,6 +1,6 @@
 import { ApiProperty, PartialType } from "@nestjs/swagger";
 import { SexoBebe, StatusProjeto } from "@prisma/client";
-import { IsDateString, IsEnum, IsNumber, IsOptional, IsString, Min } from "class-validator";
+import { IsDateString, IsEnum, IsNumber, IsOptional, IsString, IsUrl, Min } from "class-validator";
 
 export class CreateProjectDto {
   @ApiProperty()
@@ -33,6 +33,11 @@ export class CreateProjectDto {
   @IsOptional()
   @IsString()
   climaRegiao?: string;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsUrl({ require_protocol: true })
+  fotoQuarto?: string;
 }
 
 export class UpdateProjectDto extends PartialType(CreateProjectDto) {

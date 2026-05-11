@@ -7,6 +7,8 @@ export type Project = {
   orcamentoTotal: string | number;
   moeda: string;
   shareSlug?: string;
+  climaRegiao?: string | null;
+  fotoQuarto?: string | null;
 };
 
 export type Dashboard = {
@@ -44,7 +46,9 @@ export type ItemEnxoval = {
   quantidadeGanha: number;
   valorEstimado: string | number;
   valorPago: string | number;
-  categoria: { nome: string; cor?: string };
+  linkCompra?: string | null;
+  imagem?: string | null;
+  categoria: { id?: string; nome: string; cor?: string };
 };
 
 export type ChecklistItem = {
@@ -58,4 +62,8 @@ export type Category = {
   id: string;
   nome: string;
   cor?: string;
+  icone?: string | null;
+  prioridade?: number;
+  ordem?: number;
+  padrao?: boolean;
 };

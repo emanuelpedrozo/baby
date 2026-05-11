@@ -1,6 +1,6 @@
 "use client";
 
-import { Gift } from "lucide-react";
+import { ExternalLink, Gift } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { FormEvent, useState } from "react";
@@ -23,6 +23,7 @@ type PublicLista = {
     quantidadeNecessaria: number;
     quantidadeComprada: number;
     quantidadeGanha: number;
+    linkCompra?: string | null;
     categoria: { nome: string };
   }>;
 };
@@ -136,6 +137,17 @@ export default function PublicGiftListPage() {
                       {item.categoria.nome} · {obtido}/{item.quantidadeNecessaria} obtidos
                       {completo ? " · completo" : ""}
                     </p>
+                    {item.linkCompra ? (
+                      <a
+                        href={item.linkCompra}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="mt-2 inline-flex items-center gap-1 text-sm font-medium text-sage-800 underline decoration-sage-400 underline-offset-2 dark:text-sage-200"
+                      >
+                        <ExternalLink size={14} aria-hidden />
+                        Ver produto
+                      </a>
+                    ) : null}
                   </div>
                   {!completo && item.disponivelParaReserva ? (
                     <span className="rounded bg-sage-100 px-2 py-1 text-xs font-medium text-sage-800 dark:bg-sage-900/50 dark:text-sage-200">

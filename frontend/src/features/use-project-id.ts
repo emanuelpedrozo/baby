@@ -4,7 +4,6 @@ import { useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo } from "react";
 import { apiFetch } from "@/lib/api";
 import { useAppStore } from "@/lib/store";
-import { demoProject } from "./demo-data";
 import type { Project } from "./types";
 
 export function useProjectId() {
@@ -17,7 +16,7 @@ export function useProjectId() {
   });
 
   const projectId = useMemo(() => {
-    if (!session?.accessToken) return demoProject.id;
+    if (!session?.accessToken) return "";
     const list = projects.data ?? [];
     if (list.length === 0) return "";
     if (selectedProjectId && list.some((p) => p.id === selectedProjectId)) return selectedProjectId;
@@ -30,15 +29,11 @@ export function useProjectId() {
     if (!valid) setSelectedProjectId(projects.data[0]!.id);
   }, [session?.accessToken, projects.data, selectedProjectId, setSelectedProjectId]);
 
-  const isDemo = !session?.accessToken;
-  const hasProject = isDemo || Boolean(projectId);
-
   return {
     session,
     projectId,
     projects,
-    isDemo,
-    hasProject,
+    hasProject: Boolean(projectId),
     selectedProjectId,
     setSelectedProjectId
   };

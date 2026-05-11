@@ -1,7 +1,9 @@
 import "reflect-metadata";
 import compression from "compression";
 import cookieParser from "cookie-parser";
+import express from "express";
 import helmet from "helmet";
+import { join } from "path";
 import { ValidationPipe } from "@nestjs/common";
 import { NestFactory } from "@nestjs/core";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
@@ -12,9 +14,10 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule, { cors: false });
 
   app.setGlobalPrefix("api");
-  app.use(helmet());
+  app.use(helmet({ crossOriginResourcePolicy: { policy: "cross-origin" } }));
   app.use(compression());
   app.use(cookieParser());
+  app.use("/uploads", express.static(join(process.cwd(), "uploads")));
   app.use(rateLimit({ windowMs: 60_000, limit: 120, standardHeaders: "draft-7", legacyHeaders: false }));
   app.enableCors({
     origin: process.env.PUBLIC_APP_URL ?? "http://localhost:3000",

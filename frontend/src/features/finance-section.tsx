@@ -5,7 +5,6 @@ import { useQuery } from "@tanstack/react-query";
 import { apiFetch } from "@/lib/api";
 import { money } from "@/lib/format";
 import { Metric } from "@/components/ui";
-import { demoDashboard } from "./demo-data";
 import { useProjectId } from "./use-project-id";
 import type { Dashboard } from "./types";
 
@@ -15,10 +14,18 @@ export function FinanceSection() {
   const dashboard = useQuery({
     queryKey: ["dashboard", projectId, session?.accessToken],
     queryFn: () => apiFetch<Dashboard>(`/projetos/${projectId}/dashboard`),
-    enabled: Boolean(session?.accessToken && projectId && projectId !== "demo")
+    enabled: Boolean(session?.accessToken && projectId)
   });
 
-  const d = dashboard.data ?? demoDashboard;
+  if (dashboard.isLoading || !dashboard.data) {
+    return (
+      <section className="rounded-lg border border-black/10 bg-white p-5 text-sm text-black/60 shadow-sm dark:border-white/10 dark:bg-white/10 dark:text-white/65">
+        Carregando financeiro...
+      </section>
+    );
+  }
+
+  const d = dashboard.data;
   const { indicadores, projeto } = d;
 
   return (

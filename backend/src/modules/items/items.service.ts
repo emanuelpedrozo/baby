@@ -17,7 +17,11 @@ export class ItemsService {
     private readonly suggestions: SuggestionService
   ) {}
 
-  async list(user: AuthenticatedUser, projetoId: string, params: { page: number; perPage: number; q?: string; status?: StatusItem }) {
+  async list(
+    user: AuthenticatedUser,
+    projetoId: string,
+    params: { page: number; perPage: number; q?: string; status?: StatusItem; categoriaId?: string }
+  ) {
     await this.ensureProject(user, projetoId);
     const [total, data] = await this.repo.list(projetoId, params);
     return { data, meta: { total, page: params.page, perPage: params.perPage } };

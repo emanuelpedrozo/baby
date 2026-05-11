@@ -27,14 +27,11 @@ Servicos:
 - Backend: http://localhost:3333/api
 - Swagger: http://localhost:3333/api/docs
 - MinIO console: http://localhost:9001
-- Lista publica de presentes (exemplo seed): http://localhost:3000/publico/listas/demo-lista
+- Lista publica de presentes: disponivel no menu Presentes apos cadastrar o bebe
 
-Usuario seed:
+Primeiro acesso:
 
-```text
-demo@baby.local
-12345678
-```
+Crie sua conta pela tela inicial e cadastre o bebe para habilitar o painel.
 
 ## Rodar em producao local
 

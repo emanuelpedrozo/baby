@@ -1,5 +1,6 @@
 import { ApiProperty, PartialType } from "@nestjs/swagger";
 import { PrioridadeItem, StatusItem, TamanhoItem } from "@prisma/client";
+import { Transform } from "class-transformer";
 import { IsEnum, IsInt, IsNumber, IsOptional, IsString, IsUrl, Min } from "class-validator";
 
 export class CreateItemDto {
@@ -59,8 +60,14 @@ export class CreateItemDto {
   @IsString()
   observacoes?: string;
 
-  @ApiProperty({ required: false })
+  @ApiProperty({ required: false, description: "URL do produto; protocolo https sera assumido se omitido." })
   @IsOptional()
+  @Transform(({ value }) => {
+    if (value == null || value === "") return undefined;
+    const s = String(value).trim();
+    if (!s) return undefined;
+    return /^https?:\/\//i.test(s) ? s : `https://${s}`;
+  })
   @IsUrl({ require_protocol: true })
   linkCompra?: string;
 

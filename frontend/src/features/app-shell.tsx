@@ -11,6 +11,8 @@ import {
   PackageCheck,
   Share2,
   Sun,
+  Tags,
+  UserRound,
   Wallet
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
@@ -22,14 +24,16 @@ import { apiFetch } from "@/lib/api";
 import { date } from "@/lib/format";
 import { useAppStore } from "@/lib/store";
 import { IconButton } from "@/components/ui";
+import { BabyProjectSetup } from "./baby-project-setup";
 import { LoginPanel } from "./login-panel";
 import { ProjectControls } from "./project-controls";
-import { demoDashboard, demoProject } from "./demo-data";
 import { useProjectId } from "./use-project-id";
 import type { Dashboard } from "./types";
 
 const navItems: Array<{ href: string; label: string; icon: LucideIcon }> = [
   { href: "/", label: "Dashboard", icon: PackageCheck },
+  { href: "/bebe", label: "Bebe", icon: UserRound },
+  { href: "/categorias", label: "Categorias", icon: Tags },
   { href: "/itens", label: "Itens", icon: ListChecks },
   { href: "/financeiro", label: "Financeiro", icon: Wallet },
   { href: "/checklist", label: "Checklist", icon: ClipboardCheck },
@@ -39,7 +43,7 @@ const navItems: Array<{ href: string; label: string; icon: LucideIcon }> = [
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { session, darkMode, toggleDarkMode } = useAppStore();
-  const { projectId, projects, isDemo, hasProject } = useProjectId();
+  const { projectId, projects, hasProject } = useProjectId();
   const [shareFeedback, setShareFeedback] = useState("");
 
   useEffect(() => {
@@ -49,7 +53,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const dashboard = useQuery({
     queryKey: ["dashboard", projectId, session?.accessToken],
     queryFn: () => apiFetch<Dashboard>(`/projetos/${projectId}/dashboard`),
-    enabled: Boolean(session?.accessToken && projectId && projectId !== "demo")
+    enabled: Boolean(session?.accessToken && projectId)
   });
 
   const activeProject = useMemo(
@@ -57,24 +61,24 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     [projects.data, projectId]
   );
 
-  const displayDashboard = !isDemo && projectId ? (dashboard.data ?? demoDashboard) : demoDashboard;
-  const shareSlug = isDemo ? demoProject.shareSlug : activeProject?.shareSlug;
+  const displayProject = dashboard.data?.projeto ?? activeProject;
+  const shareSlug = activeProject?.shareSlug;
 
   const headerTitle = useMemo(() => {
-    if (!session?.accessToken) return `Enxoval de ${demoDashboard.projeto.nomeBebe}`;
-    if (!projectId) return "Controle de enxoval";
-    return `Enxoval de ${displayDashboard.projeto.nomeBebe}`;
-  }, [session?.accessToken, projectId, displayDashboard.projeto.nomeBebe]);
+    if (!session?.accessToken) return "Controle de enxoval";
+    if (!displayProject) return "Cadastre o bebe";
+    return `Enxoval de ${displayProject.nomeBebe}`;
+  }, [session?.accessToken, displayProject]);
 
   const headerSubtitle = useMemo(() => {
     if (!session?.accessToken) {
-      return `${demoDashboard.projeto.temaQuarto ?? ""} · parto em ${date(demoDashboard.projeto.dataPrevistaParto)}`;
+      return "Entre ou crie sua conta para comecar.";
     }
-    if (!projectId) return "Crie um projeto para comecar.";
-    const p = displayDashboard.projeto;
+    if (!displayProject) return "Preencha os dados iniciais para habilitar o painel.";
+    const p = displayProject;
     const tema = p.temaQuarto ? `${p.temaQuarto} · ` : "";
     return `${tema}parto em ${date(p.dataPrevistaParto)}`;
-  }, [session?.accessToken, projectId, displayDashboard.projeto]);
+  }, [session?.accessToken, displayProject]);
 
   function copyShareLink() {
     if (!shareSlug || typeof window === "undefined") return;
@@ -83,6 +87,42 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       setShareFeedback("Link copiado.");
       setTimeout(() => setShareFeedback(""), 2500);
     });
+  }
+
+  if (!session?.accessToken) {
+    return (
+      <main className="min-h-screen">
+        <header className="border-b border-black/10 bg-[#f8f5ef]/90 dark:border-white/10 dark:bg-[#1f251f]/90">
+          <div className="mx-auto flex max-w-5xl items-center justify-between gap-3 px-4 py-3 sm:px-6">
+            <div className="flex min-w-0 items-center gap-3">
+              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-md bg-sage-700 text-white">
+                <Baby size={22} aria-hidden />
+              </span>
+              <div>
+                <h1 className="text-lg font-semibold tracking-normal">Controle de enxoval</h1>
+                <p className="text-sm text-black/60 dark:text-white/65">Organize seu enxoval com dados salvos no servidor.</p>
+              </div>
+            </div>
+            <IconButton
+              label={darkMode ? "Tema claro" : "Tema escuro"}
+              icon={darkMode ? Sun : Moon}
+              onClick={toggleDarkMode}
+            />
+          </div>
+        </header>
+        <section className="mx-auto grid min-h-[calc(100vh-65px)] max-w-5xl items-center gap-6 px-4 py-8 sm:px-6 lg:grid-cols-[1fr_320px]">
+          <div>
+            <h2 className="text-2xl font-semibold tracking-normal">Comece cadastrando sua conta e o bebe.</h2>
+            <p className="mt-3 max-w-xl text-sm leading-6 text-black/65 dark:text-white/70">
+              Depois do cadastro, voce cria o projeto do bebe, adiciona categorias, itens, checklist da maternidade e gera a lista publica de presentes.
+            </p>
+          </div>
+          <aside className="rounded-lg border border-black/10 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-white/10">
+            <LoginPanel />
+          </aside>
+        </section>
+      </main>
+    );
   }
 
   return (
@@ -150,17 +190,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </aside>
 
         <section className="grid gap-6">
-          {!session?.accessToken ? (
-            <p className="rounded-lg border border-black/10 bg-white p-4 text-sm text-black/70 dark:border-white/10 dark:bg-white/10 dark:text-white/70">
-              Voce esta no modo demonstracao. Entre ou cadastre-se para salvar dados no servidor.
-            </p>
-          ) : null}
-          {session?.accessToken && !projectId ? (
-            <p className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-100">
-              Crie seu primeiro projeto pelo painel ao lado para habilitar o enxoval online.
-            </p>
-          ) : null}
-          {children}
+          {projects.isLoading ? (
+            <section className="rounded-lg border border-black/10 bg-white p-5 text-sm text-black/60 shadow-sm dark:border-white/10 dark:bg-white/10 dark:text-white/65">
+              Carregando seus projetos...
+            </section>
+          ) : !projectId ? (
+            <BabyProjectSetup />
+          ) : (
+            children
+          )}
         </section>
       </div>
     </main>

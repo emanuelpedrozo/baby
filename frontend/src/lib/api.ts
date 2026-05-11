@@ -14,6 +14,12 @@ export type ApiSession = {
   };
 };
 
+export type UploadResponse = {
+  url: string;
+  mimeType: string;
+  tamanhoBytes: number;
+};
+
 function isAuthPath(path: string) {
   return path.startsWith("/auth/login") || path.startsWith("/auth/register") || path.startsWith("/auth/refresh");
 }
@@ -82,4 +88,24 @@ export async function publicApiFetch<T>(path: string, init: RequestInit = {}): P
   }
 
   return response.json() as Promise<T>;
+}
+
+export async function uploadImage(file: File): Promise<UploadResponse> {
+  const store = useAppStore.getState();
+  const form = new FormData();
+  form.append("file", file);
+
+  const response = await fetch(`${API_URL}/uploads/imagem`, {
+    method: "POST",
+    headers: {
+      ...(store.session?.accessToken ? { Authorization: `Bearer ${store.session.accessToken}` } : {})
+    },
+    body: form
+  });
+
+  if (!response.ok) {
+    throw new Error(await parseErrorMessage(response));
+  }
+
+  return response.json() as Promise<UploadResponse>;
 }
