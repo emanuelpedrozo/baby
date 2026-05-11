@@ -1,0 +1,29 @@
+{
+  "name": "baby-enxoval",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Sistema de controle de enxoval de bebe com backend NestJS e frontend Next.js.",
+  "workspaces": [
+    "backend",
+    "frontend"
+  ],
+  "scripts": {
+    "dev": "docker compose up --build",
+    "dev:apps": "concurrently \"npm run start:dev -w backend\" \"npm run dev -w frontend\"",
+    "lint": "npm run lint -w backend && npm run lint -w frontend",
+    "test": "npm run test -w backend && npm run test -w frontend",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md,yml,yaml,css,prisma}\""
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "prettier": "^3.3.3"
+  },
+  "overrides": {
+    "@nestjs/common": "11.1.19",
+    "file-type": "21.3.4",
+    "postcss": "8.5.14",
+    "next@16.2.6": {
+      "postcss": "8.5.14"
+    }
+  }
+}

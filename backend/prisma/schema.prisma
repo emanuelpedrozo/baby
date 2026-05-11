@@ -1,0 +1,283 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum PapelUsuario {
+  ADMIN
+  RESPONSAVEL
+  COLABORADOR
+  VISITANTE
+}
+
+enum SexoBebe {
+  FEMININO
+  MASCULINO
+  NAO_INFORMADO
+}
+
+enum StatusProjeto {
+  ATIVO
+  ARQUIVADO
+  CONCLUIDO
+}
+
+enum TamanhoItem {
+  RN
+  P
+  M
+  G
+  GG
+  UNICO
+  NAO_APLICAVEL
+}
+
+enum PrioridadeItem {
+  BAIXA
+  MEDIA
+  ALTA
+  ESSENCIAL
+}
+
+enum StatusItem {
+  NAO_INICIADO
+  EM_PESQUISA
+  PARCIAL
+  COMPLETO
+  COMPRADO
+  GANHO
+  CANCELADO
+}
+
+enum TipoChecklist {
+  MAE
+  BEBE
+  ACOMPANHANTE
+  DOCUMENTOS
+}
+
+enum TipoMovimentacaoEstoque {
+  ENTRADA
+  USO
+  EMPRESTIMO
+  DOACAO
+  AJUSTE
+}
+
+enum StatusReserva {
+  ATIVA
+  CONFIRMADA
+  EXPIRADA
+  CANCELADA
+}
+
+model Tenant {
+  id        String   @id @default(uuid())
+  nome      String
+  slug      String   @unique
+  criadoEm  DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+
+  usuarios  Usuario[]
+  projetos  Projeto[]
+}
+
+model Usuario {
+  id           String       @id @default(uuid())
+  tenantId     String
+  nome         String
+  email        String       @unique
+  senhaHash    String
+  papel        PapelUsuario @default(RESPONSAVEL)
+  consentimentoLgpd Boolean @default(false)
+  criadoEm     DateTime     @default(now())
+  atualizadoEm DateTime     @updatedAt
+  deletadoEm   DateTime?
+
+  tenant       Tenant       @relation(fields: [tenantId], references: [id])
+  projetos     Projeto[]    @relation("ResponsavelProjetos")
+  refreshTokens RefreshToken[]
+  auditorias   LogAuditoria[]
+}
+
+model RefreshToken {
+  id          String   @id @default(uuid())
+  usuarioId   String
+  tokenHash   String
+  expiraEm    DateTime
+  revogadoEm  DateTime?
+  criadoEm    DateTime @default(now())
+
+  usuario     Usuario  @relation(fields: [usuarioId], references: [id])
+}
+
+model Projeto {
+  id                String        @id @default(uuid())
+  tenantId          String
+  responsavelId     String
+  nomeBebe          String
+  sexo              SexoBebe      @default(NAO_INFORMADO)
+  dataPrevistaParto DateTime
+  temaQuarto        String?
+  orcamentoTotal    Decimal       @db.Decimal(12, 2)
+  moeda             String        @default("BRL")
+  status            StatusProjeto @default(ATIVO)
+  shareSlug         String        @unique
+  climaRegiao       String?
+  criadoEm          DateTime      @default(now())
+  atualizadoEm      DateTime      @updatedAt
+  deletadoEm        DateTime?
+
+  tenant            Tenant        @relation(fields: [tenantId], references: [id])
+  responsavel       Usuario       @relation("ResponsavelProjetos", fields: [responsavelId], references: [id])
+  categorias        Categoria[]
+  itens             ItemEnxoval[]
+  checklist         ChecklistMaternidadeItem[]
+  reservas          ReservaPresente[]
+  uploads           Upload[]
+  notificacoes      Notificacao[]
+
+  @@index([tenantId, status])
+}
+
+model Categoria {
+  id           String   @id @default(uuid())
+  tenantId     String
+  projetoId    String?
+  nome         String
+  icone        String?
+  cor          String?
+  prioridade   Int      @default(0)
+  ordem        Int      @default(0)
+  padrao       Boolean  @default(false)
+  criadoEm     DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+  deletadoEm   DateTime?
+
+  projeto      Projeto? @relation(fields: [projetoId], references: [id])
+  itens        ItemEnxoval[]
+
+  @@index([tenantId, projetoId])
+}
+
+model ItemEnxoval {
+  id                    String          @id @default(uuid())
+  projetoId             String
+  categoriaId           String
+  nome                  String
+  descricao             String?
+  tamanho               TamanhoItem     @default(NAO_APLICAVEL)
+  quantidadeNecessaria  Int             @default(1)
+  quantidadeComprada    Int             @default(0)
+  quantidadeGanha       Int             @default(0)
+  valorEstimado         Decimal         @default(0) @db.Decimal(12, 2)
+  valorPago             Decimal         @default(0) @db.Decimal(12, 2)
+  prioridade            PrioridadeItem  @default(MEDIA)
+  status                StatusItem      @default(NAO_INICIADO)
+  observacoes           String?
+  linkCompra            String?
+  imagem                String?
+  criadoEm              DateTime        @default(now())
+  atualizadoEm          DateTime        @updatedAt
+  deletadoEm            DateTime?
+
+  projeto               Projeto         @relation(fields: [projetoId], references: [id])
+  categoria             Categoria       @relation(fields: [categoriaId], references: [id])
+  reservas              ReservaPresente[]
+  movimentacoes         MovimentacaoEstoque[]
+  uploads               Upload[]
+
+  @@index([projetoId, categoriaId, status])
+}
+
+model ReservaPresente {
+  id             String        @id @default(uuid())
+  projetoId      String
+  itemId         String
+  nomeVisitante  String
+  emailVisitante String?
+  telefone       String?
+  status         StatusReserva @default(ATIVA)
+  expiraEm       DateTime
+  criadoEm       DateTime      @default(now())
+  atualizadoEm   DateTime      @updatedAt
+
+  projeto        Projeto       @relation(fields: [projetoId], references: [id])
+  item           ItemEnxoval   @relation(fields: [itemId], references: [id])
+
+  @@index([itemId, status])
+}
+
+model ChecklistMaternidadeItem {
+  id           String        @id @default(uuid())
+  projetoId    String
+  tipo         TipoChecklist
+  nome         String
+  concluido    Boolean       @default(false)
+  ordem        Int           @default(0)
+  criadoEm     DateTime      @default(now())
+  atualizadoEm DateTime      @updatedAt
+
+  projeto      Projeto       @relation(fields: [projetoId], references: [id])
+
+  @@index([projetoId, tipo])
+}
+
+model MovimentacaoEstoque {
+  id          String                  @id @default(uuid())
+  itemId      String
+  tipo        TipoMovimentacaoEstoque
+  quantidade  Int
+  observacao  String?
+  criadoEm    DateTime                @default(now())
+
+  item        ItemEnxoval             @relation(fields: [itemId], references: [id])
+}
+
+model Upload {
+  id           String   @id @default(uuid())
+  projetoId    String
+  itemId       String?
+  url          String
+  chaveStorage String
+  mimeType     String
+  tamanhoBytes Int
+  favorito     Boolean  @default(false)
+  criadoEm     DateTime @default(now())
+
+  projeto      Projeto  @relation(fields: [projetoId], references: [id])
+  item         ItemEnxoval? @relation(fields: [itemId], references: [id])
+}
+
+model Notificacao {
+  id        String   @id @default(uuid())
+  projetoId String
+  canal     String
+  titulo    String
+  mensagem  String
+  enviadaEm DateTime?
+  criadaEm  DateTime @default(now())
+
+  projeto   Projeto  @relation(fields: [projetoId], references: [id])
+}
+
+model LogAuditoria {
+  id          String   @id @default(uuid())
+  usuarioId   String?
+  entidade    String
+  entidadeId  String
+  acao        String
+  antes       Json?
+  depois      Json?
+  ip          String?
+  userAgent   String?
+  criadoEm    DateTime @default(now())
+
+  usuario     Usuario? @relation(fields: [usuarioId], references: [id])
+
+  @@index([entidade, entidadeId])
+}

@@ -1,0 +1,43 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: baby_enxoval
+          POSTGRES_USER: baby
+          POSTGRES_PASSWORD: baby
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U baby -d baby_enxoval"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URL: postgresql://baby:baby@localhost:5432/baby_enxoval?schema=public
+      JWT_ACCESS_SECRET: test-access
+      JWT_REFRESH_SECRET: test-refresh
+      PUBLIC_APP_URL: http://localhost:3000
+      NEXT_PUBLIC_API_URL: http://localhost:3333/api
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm install
+      - run: npm run prisma:generate -w backend
+      - run: npx prisma migrate deploy --schema backend/prisma/schema.prisma
+      - run: npm run lint
+      - run: npm run test
+      - run: npm run build -w backend
+      - run: npm run build -w frontend
