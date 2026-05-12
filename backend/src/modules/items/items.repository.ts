@@ -7,7 +7,17 @@ import { CreateItemDto, UpdateItemDto } from "./dto";
 export class ItemsRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  list(projetoId: string, params: { page: number; perPage: number; q?: string; status?: StatusItem; categoriaId?: string }) {
+  list(
+    projetoId: string,
+    params: {
+      page: number;
+      perPage: number;
+      q?: string;
+      status?: StatusItem;
+      categoriaId?: string;
+      ordenar?: "prioridade" | "nome" | "nome_desc";
+    }
+  ) {
     const where: Prisma.ItemEnxovalWhereInput = {
       projetoId,
       deletadoEm: null,
@@ -23,12 +33,20 @@ export class ItemsRepository {
           }
         : {})
     };
+
+    const orderBy: Prisma.ItemEnxovalOrderByWithRelationInput[] =
+      params.ordenar === "nome"
+        ? [{ nome: "asc" }]
+        : params.ordenar === "nome_desc"
+          ? [{ nome: "desc" }]
+          : [{ prioridade: "desc" }, { criadoEm: "desc" }];
+
     return this.prisma.$transaction([
       this.prisma.itemEnxoval.count({ where }),
       this.prisma.itemEnxoval.findMany({
         where,
         include: { categoria: true },
-        orderBy: [{ prioridade: "desc" }, { criadoEm: "desc" }],
+        orderBy,
         skip: (params.page - 1) * params.perPage,
         take: params.perPage
       })

@@ -25,7 +25,7 @@ Servicos:
 
 - Frontend: http://localhost:3000
 - Backend: http://localhost:3333/api
-- Swagger: http://localhost:3333/api/docs
+- Swagger: http://localhost:3333/api/docs (desligado quando `NODE_ENV=production` no backend)
 - MinIO console: http://localhost:9001
 - Lista publica de presentes: disponivel no menu Presentes apos cadastrar o bebe
 

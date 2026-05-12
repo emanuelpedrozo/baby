@@ -36,6 +36,24 @@ textarea {
   font: inherit;
 }
 
+select {
+  color: #28302b;
+}
+
+select option {
+  background: #ffffff;
+  color: #28302b;
+}
+
+.dark select {
+  color: #f5f1e9;
+}
+
+.dark select option {
+  background: #ffffff;
+  color: #28302b;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

@@ -1,3 +1,4 @@
+import { emitToast } from "./toast";
 import { useAppStore } from "./store";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3333/api";
@@ -63,6 +64,7 @@ export async function apiFetch<T>(path: string, init: RequestInit = {}, tokenOve
       response = await requestOnce(accessToken);
     } else {
       store.setSession(undefined);
+      emitToast("Sessao expirada. Entre novamente.", "error");
     }
   }
 

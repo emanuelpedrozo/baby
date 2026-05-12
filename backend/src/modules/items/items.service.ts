@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { BadRequestException, Injectable } from "@nestjs/common";
 import { StatusItem } from "@prisma/client";
 import { AuthenticatedUser } from "../../common/types/authenticated-user";
 import { PrismaService } from "../../database/prisma.service";
@@ -20,7 +20,14 @@ export class ItemsService {
   async list(
     user: AuthenticatedUser,
     projetoId: string,
-    params: { page: number; perPage: number; q?: string; status?: StatusItem; categoriaId?: string }
+    params: {
+      page: number;
+      perPage: number;
+      q?: string;
+      status?: StatusItem;
+      categoriaId?: string;
+      ordenar?: "prioridade" | "nome" | "nome_desc";
+    }
   ) {
     await this.ensureProject(user, projetoId);
     const [total, data] = await this.repo.list(projetoId, params);
@@ -29,6 +36,7 @@ export class ItemsService {
 
   async create(user: AuthenticatedUser, projetoId: string, dto: CreateItemDto) {
     await this.ensureProject(user, projetoId);
+    await this.ensureCategoriaDoProjeto(user.tenantId, projetoId, dto.categoriaId);
     const status = calcularStatusItem(dto);
     const item = await this.repo.create(projetoId, dto, status);
     await this.audit.log({ user, entidade: "ItemEnxoval", entidadeId: item.id, acao: "CRIAR", depois: item });
@@ -42,6 +50,9 @@ export class ItemsService {
 
   async update(user: AuthenticatedUser, projetoId: string, id: string, dto: UpdateItemDto) {
     await this.ensureProject(user, projetoId);
+    if (dto.categoriaId) {
+      await this.ensureCategoriaDoProjeto(user.tenantId, projetoId, dto.categoriaId);
+    }
     const before = await this.repo.findById(projetoId, id);
     const status = calcularStatusItem({
       quantidadeComprada: dto.quantidadeComprada ?? before.quantidadeComprada,
@@ -71,5 +82,20 @@ export class ItemsService {
     return this.prisma.projeto.findFirstOrThrow({
       where: { id: projetoId, tenantId: user.tenantId, deletadoEm: null }
     });
+  }
+
+  /** Garante que a categoria existe, pertence ao tenant e ao projeto (nao aceita categoria so de tenant sem projeto). */
+  private async ensureCategoriaDoProjeto(tenantId: string, projetoId: string, categoriaId: string) {
+    const cat = await this.prisma.categoria.findFirst({
+      where: {
+        id: categoriaId,
+        projetoId,
+        tenantId,
+        deletadoEm: null
+      }
+    });
+    if (!cat) {
+      throw new BadRequestException("Categoria invalida ou nao pertence a este projeto.");
+    }
   }
 }

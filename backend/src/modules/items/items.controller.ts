@@ -20,6 +20,7 @@ export class ItemsController {
   @ApiQuery({ name: "q", required: false })
   @ApiQuery({ name: "status", enum: StatusItem, required: false })
   @ApiQuery({ name: "categoriaId", required: false })
+  @ApiQuery({ name: "ordenar", required: false, enum: ["prioridade", "nome", "nome_desc"] })
   list(
     @CurrentUser() user: AuthenticatedUser,
     @Param("projetoId") projetoId: string,
@@ -27,14 +28,16 @@ export class ItemsController {
     @Query("perPage") perPage = "20",
     @Query("q") q?: string,
     @Query("status") status?: StatusItem,
-    @Query("categoriaId") categoriaId?: string
+    @Query("categoriaId") categoriaId?: string,
+    @Query("ordenar") ordenar?: "prioridade" | "nome" | "nome_desc"
   ) {
     return this.items.list(user, projetoId, {
       page: Number(page),
       perPage: Math.min(Number(perPage), 500),
       q,
       status,
-      categoriaId
+      categoriaId,
+      ordenar: ordenar === "nome" || ordenar === "nome_desc" ? ordenar : "prioridade"
     });
   }
 

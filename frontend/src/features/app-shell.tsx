@@ -10,6 +10,7 @@ import {
   Moon,
   PackageCheck,
   Share2,
+  Shield,
   Sun,
   Tags,
   UserRound,
@@ -19,8 +20,9 @@ import type { LucideIcon } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { apiFetch } from "@/lib/api";
+import { emitToast } from "@/lib/toast";
 import { date } from "@/lib/format";
 import { useAppStore } from "@/lib/store";
 import { IconButton } from "@/components/ui";
@@ -37,14 +39,14 @@ const navItems: Array<{ href: string; label: string; icon: LucideIcon }> = [
   { href: "/itens", label: "Itens", icon: ListChecks },
   { href: "/financeiro", label: "Financeiro", icon: Wallet },
   { href: "/checklist", label: "Checklist", icon: ClipboardCheck },
-  { href: "/presentes", label: "Presentes", icon: Gift }
+  { href: "/presentes", label: "Presentes", icon: Gift },
+  { href: "/conta", label: "Conta", icon: Shield }
 ];
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { session, darkMode, toggleDarkMode } = useAppStore();
   const { projectId, projects, hasProject } = useProjectId();
-  const [shareFeedback, setShareFeedback] = useState("");
 
   useEffect(() => {
     document.documentElement.classList.toggle("dark", darkMode);
@@ -80,12 +82,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     return `${tema}parto em ${date(p.dataPrevistaParto)}`;
   }, [session?.accessToken, displayProject]);
 
+  const paginaAtual = useMemo(() => navItems.find((n) => n.href === pathname)?.label, [pathname]);
+
   function copyShareLink() {
     if (!shareSlug || typeof window === "undefined") return;
     const url = `${window.location.origin}/publico/listas/${shareSlug}`;
     void navigator.clipboard.writeText(url).then(() => {
-      setShareFeedback("Link copiado.");
-      setTimeout(() => setShareFeedback(""), 2500);
+      emitToast("Link da lista copiado.", "success");
     });
   }
 
@@ -136,6 +139,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <div className="min-w-0">
               <h1 className="truncate text-lg font-semibold tracking-normal">{headerTitle}</h1>
               <p className="truncate text-sm text-black/60 dark:text-white/65">{headerSubtitle}</p>
+              {paginaAtual ? (
+                <p className="truncate text-xs font-medium text-sage-800 dark:text-sage-200" aria-current="page">
+                  {paginaAtual}
+                </p>
+              ) : null}
             </div>
           </div>
           <div className="flex flex-col items-end gap-1">
@@ -158,12 +166,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 onClick={toggleDarkMode}
               />
             </div>
-            {shareFeedback ? <span className="text-xs text-sage-700 dark:text-sage-300">{shareFeedback}</span> : null}
           </div>
         </div>
       </header>
 
-      <div className="mx-auto grid max-w-7xl gap-6 px-4 py-6 sm:px-6 lg:grid-cols-[240px_1fr]">
+      <div className="mx-auto grid max-w-7xl gap-6 px-4 py-6 pb-24 sm:px-6 lg:grid-cols-[240px_1fr] lg:pb-6">
         <aside className="h-fit rounded-lg border border-black/10 bg-white p-3 shadow-sm dark:border-white/10 dark:bg-white/10">
           <nav className="grid gap-1">
             {navItems.map(({ href, label, icon: Icon }) => {
@@ -194,13 +201,36 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <section className="rounded-lg border border-black/10 bg-white p-5 text-sm text-black/60 shadow-sm dark:border-white/10 dark:bg-white/10 dark:text-white/65">
               Carregando seus projetos...
             </section>
-          ) : !projectId ? (
+          ) : !projectId && pathname !== "/conta" ? (
             <BabyProjectSetup />
           ) : (
             children
           )}
         </section>
       </div>
+
+      <nav
+        className="fixed bottom-0 left-0 right-0 z-40 border-t border-black/10 bg-[#f8f5ef]/95 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-1 backdrop-blur dark:border-white/10 dark:bg-[#1f251f]/95 lg:hidden"
+        aria-label="Navegacao principal"
+      >
+        <div className="mx-auto flex max-w-7xl justify-around gap-1 px-1">
+          {navItems.map(({ href, label, icon: Icon }) => {
+            const active = pathname === href;
+            return (
+              <Link
+                key={href}
+                href={href}
+                className={`flex min-w-0 flex-1 flex-col items-center gap-0.5 rounded-md py-2 text-[10px] font-medium ${
+                  active ? "text-sage-800 dark:text-sage-200" : "text-black/60 dark:text-white/65"
+                }`}
+              >
+                <Icon size={20} aria-hidden />
+                <span className="truncate px-0.5">{label}</span>
+              </Link>
+            );
+          })}
+        </div>
+      </nav>
     </main>
   );
 }
